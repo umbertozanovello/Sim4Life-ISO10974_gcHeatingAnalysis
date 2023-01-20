@@ -12,12 +12,6 @@ import s4l_v1.simulation.emlf as emlf
 import s4l_v1.simulation.thermal as thermal
 import s4l_v1.materials.database as database
 
-"""
-INSTRUCTIONS
-1. Draw the model
-2. Create a model bounding box for EM simulations and for thermal simulations
-3. Assign a material to each CAD component
-"""
 
 # USER PARAMETERS
 
@@ -473,4 +467,4 @@ def main():
 	
 		
 if __name__ == "__main__":
-	matrices = main()
+	M, T = main()
