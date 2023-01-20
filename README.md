@@ -64,3 +64,7 @@ Number of steps stored during the thermal simulations from 0 s to *th_sim_interv
 Reference snapshot (from 1 to `th_sim_step_num`) to perform the thermal assessments (*e.g.*, if it is equal to `th_sim_step_num`, the script will compute the magnetic field direction that maximise the temperature increase in the model after `th_sim_interval` seconds of exposure);
 * **excluded_from_th_extr** : *list of string* <br>
 A list containing the names of the entities that can be excluded by the thermal result analyses.
+
+## Example
+
+An example is made available in the examples folder of the repository. To run the example it is sufficient to open the *.smash* file with Sim4Lfe and run the *computeWorstOrientation.py* script from the Sim4Life scripter.

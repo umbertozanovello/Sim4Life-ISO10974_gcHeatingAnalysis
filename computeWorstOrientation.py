@@ -15,7 +15,7 @@ import s4l_v1.materials.database as database
 
 # USER PARAMETERS
 
-onlyExtract = True # If True the script doesn't execute simulations
+onlyExtract = False # If True the script doesn't execute simulations
 model_embb_name = "EM_BB_model"
 excluded_from_em = ["Phantom"] # Entities to be excluded from em computations
 temp_files_directory = "C:\\Simulazioni\\Zanovello\\Sim4Life\\STASIS\\WorstExposureComp\\temporary"
