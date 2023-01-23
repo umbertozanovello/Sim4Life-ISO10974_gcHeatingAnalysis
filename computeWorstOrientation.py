@@ -24,6 +24,7 @@ em_voxel_size = np.array([1,1,1]) # mm
 
 execute_thermal = True
 model_thbb_name = "TH_BB_model"
+phantom_name = "Phantom"
 th_voxel_size = np.array([1,1,1]) # mm
 th_sim_interval = 1800 # s
 th_sim_step_num = 6 # Number of simulated step from 0 s to th_sim_interval
@@ -321,9 +322,16 @@ def setThermalSimulation(simName, cache_filename):
 	manual_grid_settings = simulation.AddManualGridSettings([model.AllEntities()[model_thbb_name]])
 	manual_grid_settings.MaxStep = th_voxel_size, units.MilliMeters
 
-	 # Editing AutomaticVoxelerSettings "Automatic Voxeler Settings
+	# Editing AutomaticVoxelerSettings "Automatic Voxeler Settings
 	automatic_voxeler_settings = [x for x in simulation.AllSettings if isinstance(x, thermal.AutomaticVoxelerSettings) and x.Name == "Automatic Voxeler Settings"][0]
-	components = sim_entities
+	components = [x for x in sim_entities if x.Name != phantom_name]
+	automatic_voxeler_settings.Priority = 1
+	simulation.Add(automatic_voxeler_settings, components)
+
+	automatic_voxeler_settings = thermal.AutomaticVoxelerSettings()
+	components = [model.AllEntities()[phantom_name]]
+	automatic_voxeler_settings.Name = "Automatic Voxeler Settings Phantom"
+	automatic_voxeler_settings.Priority = 0
 	simulation.Add(automatic_voxeler_settings, components)
 
 	# Update the materials with the new frequency parameters

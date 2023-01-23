@@ -54,6 +54,8 @@ Three element array containing the size of the voxels (in mm) used to discretise
 If True the thermal analysis is performed after the EM one. Otherwise, the script will investigate only the direction of the magnetic field that maximise the deposited power;
 * **model_thbb_name** : *string* <br>
 The name of the phantom bounding box created in point 4;
+* **phantom_name** : *string* <br>
+The name of the phantom entity created or imported in step 3;
 * **th_voxel_size** : *numpy ndarray* <br>
 Three element array containing the size of the voxels (in mm) used to discretise the model during the thermal simulations;
 * **th_sim_interval** : *int* or *float* <br>
