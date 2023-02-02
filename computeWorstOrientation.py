@@ -118,7 +118,8 @@ def setEMSimulation(simName, vecPot_filename):
 	# Editing SolverSettings "Solver
 	solver_settings = simulation.SolverSettings
 	solver_settings.PredefinedTolerances = solver_settings.PredefinedTolerances.enum.High
-
+	solver_settings.AdditionalSolverOptions = u"-ksp_type gmres"
+	
 	simulation.UpdateGrid()
 	document.AllSimulations.Add( simulation )
 	
@@ -475,4 +476,5 @@ def main():
 	
 		
 if __name__ == "__main__":
-	M, T = main()
+	
+	arrays = main()
