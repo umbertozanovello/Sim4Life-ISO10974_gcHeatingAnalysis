@@ -17,14 +17,16 @@ import s4l_v1.materials.database as database
 
 onlyExtract = False # If True the script doesn't execute simulations
 model_embb_name = "EM_BB_model"
+phantom_name = "Phantom"
+
 excluded_from_em = ["Phantom"] # Entities to be excluded from em computations
 temp_files_directory = "C:\\Simulazioni\\Zanovello\\Sim4Life\\STASIS\\WorstExposureComp\\temporary"
 material_databases = ["User Default"]
 em_voxel_size = np.array([1,1,1]) # mm
 
-execute_thermal = True
+execute_thermal = False
 model_thbb_name = "TH_BB_model"
-phantom_name = "Phantom"
+
 th_voxel_size = np.array([1,1,1]) # mm
 th_sim_interval = 1800 # s
 th_sim_step_num = 6 # Number of simulated step from 0 s to th_sim_interval
@@ -113,7 +115,17 @@ def setEMSimulation(simName, vecPot_filename):
 
 	# Editing AutomaticVoxelerSettings
 	automatic_voxeler_settings = [x for x in simulation.AllSettings if isinstance(x, emlf.AutomaticVoxelerSettings) and x.Name == "Automatic Voxeler Settings"][0]
-	simulation.Add(automatic_voxeler_settings, sim_entities)
+	components = [x for x in sim_entities if x.Name != phantom_name]
+	automatic_voxeler_settings.Priority = 1
+	simulation.Add(automatic_voxeler_settings, components)
+	
+	# Editing AutomaticVoxelerSettings
+	if phantom_name not in excluded_from_em: # Phantom should have a lower priority
+		automatic_voxeler_settings = emlf.AutomaticVoxelerSettings()
+		components = [x for x in sim_entities if x.Name == phantom_name]
+		automatic_voxeler_settings.Name = "Automatic Voxeler Settings Phantom"
+		automatic_voxeler_settings.Priority = 0
+		simulation.Add(automatic_voxeler_settings, components)
 
 	# Editing SolverSettings "Solver
 	solver_settings = simulation.SolverSettings
