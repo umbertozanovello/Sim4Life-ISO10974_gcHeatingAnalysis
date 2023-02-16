@@ -14,8 +14,10 @@ import s4l_v1.materials.database as database
 
 
 # USER PARAMETERS
+bField_frequency = 270 # Hz
+bField_amplitude = 35e-3 # Tesla
 
-onlyExtract = False # If True the script doesn't execute simulations
+onlyExtract = True # If True the script doesn't execute simulations
 model_embb_name = "EM_BB_model"
 phantom_name = "Phantom"
 
@@ -24,7 +26,7 @@ temp_files_directory = "C:\\Simulazioni\\Zanovello\\Sim4Life\\STASIS\\WorstExpos
 material_databases = ["User Default"]
 em_voxel_size = np.array([1,1,1]) # mm
 
-execute_thermal = False
+execute_thermal = True
 model_thbb_name = "TH_BB_model"
 
 th_voxel_size = np.array([1,1,1]) # mm
@@ -73,7 +75,7 @@ def setEMSimulation(simName, vecPot_filename):
 	
 	# Editing QuasiStaticSetupSettings "Setup
 	quasi_static_setup_settings = [x for x in simulation.AllSettings if isinstance(x, emlf.QuasiStaticSetupSettings) and x.Name == "Setup"][0]
-	quasi_static_setup_settings.Frequency = 270.0, units.Hz
+	quasi_static_setup_settings.Frequency = bField_frequency, units.Hz
 	
 	sim_entities = []
 	for entity in model.AllEntities():
@@ -191,6 +193,9 @@ def computePowerWorstOrientation(M):
 
 	theta = np.arctan(np.sqrt(worst_B[0]**2+worst_B[1]**2)/worst_B[2]) # Polar angle (with respect to z-axis)
 	phi = np.arctan2(worst_B[1],worst_B[0])    
+	
+	max_power = max_power * bField_amplitude**2
+	worst_B = worst_B * bField_amplitude
 
 	print("POWER WORST DIRECTION:\nTheta: %.2f°, Phi: %.2f°, worst B: %.2f, %.2f, %.2f, Max power: %.2f W" %(np.rad2deg(theta), np.rad2deg(phi), worst_B[0], worst_B[1], worst_B[2], max_power))
 		
@@ -398,7 +403,7 @@ def extractThermalResults(simulation_name):
 	return temp[nan_mask], coords[nan_mask,:]
 
 def computeTemperatureWorstOrientation(T, coords):
-	
+
 	worst_B = None
 	maxmax_temp = 0
 	max_T_coords = None # meters
@@ -415,7 +420,10 @@ def computeTemperatureWorstOrientation(T, coords):
 		
 	theta = np.arctan(np.sqrt(worst_B[0]**2+worst_B[1]**2)/worst_B[2]) # Polar angle (with respect to z-axis)
 	phi = np.arctan2(worst_B[1],worst_B[0])    
-
+	
+	maxmax_temp = maxmax_temp * bField_amplitude**2
+	worst_B = worst_B * bField_amplitude
+	
 	print("TEMPERATURE WORST DIRECTION:\nTheta: %.2f°, Phi: %.2f°, worst B: %.2f, %.2f, %.2f, Worst temperature: %.2f °C" %(np.rad2deg(theta), np.rad2deg(phi), worst_B[0], worst_B[1], worst_B[2], maxmax_temp))
 	
 	bb = model.AllEntities()[model_thbb_name]

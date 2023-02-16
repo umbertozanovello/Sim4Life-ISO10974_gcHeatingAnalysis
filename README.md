@@ -38,6 +38,10 @@ Before running the script, the model should be properly prepared following the l
 
 The following parameters should in the top part of the *computeWorstOrientation.py* script before running it:
 
+* **bField_frequency** : *int* or *float* <br>
+The frequency in hertz of the homogeneous magnetic flux density radiating the object under test. ISO/TS 10974:2018 suggests a value equal to 270 Hz
+* **bField_amplitude** : *int* or *float* <br>
+The amplitude in Tesla of the homogeneous magnetic flux density radiating the object under test. ISO/TS 10974:2018 suggests a value equal to 35 mT
 * **onlyExtract** : *bool* <br>
 If True the script doesn't execute any simulation only postprocessing the results of a previous script running;
 * **model_embb_name** : *string* <br>
@@ -59,7 +63,7 @@ The name of the phantom entity created or imported in step 3;
 * **th_voxel_size** : *numpy ndarray* <br>
 Three element array containing the size of the voxels (in mm) used to discretise the model during the thermal simulations;
 * **th_sim_interval** : *int* or *float* <br>
-The time interval (in seconds) that is simulated in the thermal simulations. ISO/TS 10974:2018 suggests to perform 30 minutes experiments. Therefore this variable should be larger than 1800 s
+The time interval (in seconds) that is simulated in the thermal simulations. ISO/TS 10974:2018 suggests to perform 30 minutes experiments. Therefore this variable should be 1800 s
 * **th_sim_step_num** : *int* <br>
 Number of steps stored during the thermal simulations from 0 s to *th_sim_interval*
 * **th_snapshot** : *int* <br>
