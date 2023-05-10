@@ -12,7 +12,7 @@ import s4l_v1.simulation.emlf as emlf
 import s4l_v1.simulation.thermal as thermal
 import s4l_v1.materials.database as database
 
-
+import XPostProcessor
 # USER PARAMETERS
 bField_frequency = 270 # Hz
 bField_amplitude = 35e-3 # Tesla
@@ -34,6 +34,8 @@ th_sim_interval = 1800 # s
 th_sim_step_num = 6 # Number of simulated step from 0 s to th_sim_interval
 th_snapshot = 6 # Snapshot to be extracted to compute the thermal matrices (from 1)
 excluded_from_th_extr = ["Phantom"] # The thermal matrices are not computed inside these entities
+
+execute_visualizations =  True  # If True the script will perform the steps to prepare the visualisation of the results
 
 # Preliminary Settings
 
@@ -435,7 +437,130 @@ def computeTemperatureWorstOrientation(T, coords):
 	max_temp_point.Name = "Worst_temperature_point"
 		
 	return worst_B
+
+############################
+### Visualization
+############################
+
+def add_worst_B_vector(worst_B, fname):
+	grid = analysis.core.RectilinearGridSource()
+	grid.XAxis = 0
+	grid.YAxis = 0
+	grid.ZAxis = 0
+	grid.Update()
+
+	arrow = np.array([worst_B])
+
+	field = XPostProcessor.FloatFieldData()
+	field.Grid = grid.Outputs[0].Data 
+	field.ValueLocation = XPostProcessor.eValueLocation.kNode
+	field.NumberOfSnapshots = 1
+	field.NumberOfComponents = 3
+	field.SetField(0, arrow)
+	field.Quantity.Name = fname
+
+	assert field.Check()
+
+	producer = analysis.core.TrivialProducer()
+	producer.SetDataObject(field)
+	producer.Description = fname
+	document.AllAlgorithms.Add(producer)
+
+# needed to add the scalar field
+def find_index(x_axis, y_axis, z_axis, coord):
+    x_ind = np.argmin(np.abs(x_axis - coord[0]))
+    y_ind = np.argmin(np.abs(y_axis - coord[1]))
+    z_ind = np.argmin(np.abs(z_axis - coord[2]))
+    return [x_ind, y_ind, z_ind]
+
+# works only if the grid resolution is 0.001 -> should this be made adaptable??
+def add_scalar_fiel_orig(fname, coords, values):
 	
+	min_coord = np.min(coords, axis=0)
+	max_coord = np.max(coords, axis=0)
+
+	x_axis = np.arange(min_coord[0], max_coord[0]+0.002, 0.001)
+	y_axis = np.arange(min_coord[1], max_coord[1]+0.002, 0.001)
+	z_axis = np.arange(min_coord[2], max_coord[2]+0.002, 0.001)
+
+	grid = analysis.core.RectilinearGridSource()
+	grid.XAxis = x_axis
+	grid.YAxis = y_axis
+	grid.ZAxis = z_axis
+
+	grid.Update()
+
+	nx = len(x_axis)-1
+	ny = len(y_axis)-1
+	nz = len(z_axis)-1
+
+	float_field = np.empty((nx, ny, nz))
+	float_field[:] = np.nan
+	count = 0
+	for i, coord in enumerate(coords):
+		c_ind = find_index(x_axis, y_axis, z_axis, coord)
+		float_field[c_ind[0], c_ind[1], c_ind[2]] = values[i]
+		count += 1
+	float_field = np.reshape(float_field, (nx*ny*nz,1), order='F')
+
+
+	field = XPostProcessor.FloatFieldData()
+	field.Grid = grid.Outputs[0].Data 
+	field.ValueLocation = XPostProcessor.eValueLocation.kCellCenter
+	field.NumberOfSnapshots = 1
+	field.NumberOfComponents = 1
+	field.SetField(0, float_field)
+	field.Quantity.Name = 'Temperature'
+
+	assert field.Check()
+
+	producer = analysis.core.TrivialProducer()
+	producer.SetDataObject(field)
+	producer.Description = fname
+	document.AllAlgorithms.Add(producer)
+
+def add_scalar_fiel(fname, coords, values):
+	
+	x_axis = np.unique(coords[:,0])
+	y_axis = np.unique(coords[:,1])
+	z_axis = np.unique(coords[:,2])
+
+	grid = analysis.core.RectilinearGridSource()
+	grid.XAxis = x_axis
+	grid.YAxis = y_axis
+	grid.ZAxis = z_axis
+
+	grid.Update()
+
+	nx = len(x_axis)
+	ny = len(y_axis)
+	nz = len(z_axis)
+
+	float_field = np.empty((nx, ny, nz))
+	float_field[:] = np.nan
+
+	for i, coord in enumerate(coords):
+		c_ind = find_index(x_axis, y_axis, z_axis, coord)
+		float_field[c_ind[0], c_ind[1], c_ind[2]] = values[i]
+	
+	float_field = np.reshape(float_field, (nx*ny*nz,1), order='F')
+
+
+	field = XPostProcessor.FloatFieldData()
+	field.Grid = grid.Outputs[0].Data 
+	field.ValueLocation = XPostProcessor.eValueLocation.kCellCenter
+	field.NumberOfSnapshots = 1
+	field.NumberOfComponents = 1
+	field.SetField(0, float_field)
+	field.Quantity.Name = 'Temperature'
+
+	assert field.Check()
+
+	producer = analysis.core.TrivialProducer()
+	producer.SetDataObject(field)
+	producer.Description = fname
+	document.AllAlgorithms.Add(producer)
+
 def main():
 	#EM analysis
 	
@@ -460,7 +585,7 @@ def main():
 	E = np.concatenate((ex[:,:,None],ey[:,:,None],ez[:,:,None]),axis=2)
 
 	M = np.sum((np.transpose(E.conj(),axes=(0,2,1)) @ J).T * vols, axis=2)
-		
+	
 	#Thermal analysis
 	
 	if execute_thermal:
@@ -488,8 +613,30 @@ def main():
 
 	worst_B_power = computePowerWorstOrientation(M)
 	
+	if execute_visualizations:
+		# add the field direction vector for the highest deposited power
+		add_worst_B_vector(worst_B_power/bField_amplitude, fname='worstB_powerVector')
+
+		
 	if execute_thermal:
 		worst_B_temp = computeTemperatureWorstOrientation(T, coords)
+		
+		if execute_visualizations:
+				# add the field direction vector for the worst temperature
+				add_worst_B_vector(worst_B_temp/bField_amplitude, fname='worstB_tempVector')
+				
+				# add the scalar field of worst temperatures per voxel
+				field_name = 'worstTemp_perVoxel'
+				max_temp_values = np.linalg.eigvalsh(T)[:,2] * bField_amplitude**2
+				add_scalar_field(field_name, coords, max_temp_values)
+				
+				# add the scalar field of worst temperature orientation
+				field_name = 'worstTempDistr'
+				temp_values = (worst_B_temp @ T @ worst_B_temp)
+				add_scalar_field(field_name, coords, temp_vals)
+				
+				return max_temp_values, temp_values
+				
 		return M, T
 	
 	return M
