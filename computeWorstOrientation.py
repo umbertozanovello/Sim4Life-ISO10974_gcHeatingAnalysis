@@ -11,6 +11,7 @@ from s4l_v1 import Unit
 import s4l_v1.simulation.emlf as emlf
 import s4l_v1.simulation.thermal as thermal
 import s4l_v1.materials.database as database
+import tempfile
 
 import XPostProcessor
 # USER PARAMETERS
@@ -465,7 +466,7 @@ def add_worst_B_vector(worst_B, fname):
 	producer.SetDataObject(field)
 	producer.Description = fname
 	document.AllAlgorithms.Add(producer)
-
+		
 # needed to add the scalar field
 def find_index(x_axis, y_axis, z_axis, coord):
     x_ind = np.argmin(np.abs(x_axis - coord[0]))
@@ -473,62 +474,15 @@ def find_index(x_axis, y_axis, z_axis, coord):
     z_ind = np.argmin(np.abs(z_axis - coord[2]))
     return [x_ind, y_ind, z_ind]
 
-# works only if the grid resolution is 0.001 -> should this be made adaptable??
-def add_scalar_fiel_orig(fname, coords, values):
-	
-	min_coord = np.min(coords, axis=0)
-	max_coord = np.max(coords, axis=0)
-
-	x_axis = np.arange(min_coord[0], max_coord[0]+0.002, 0.001)
-	y_axis = np.arange(min_coord[1], max_coord[1]+0.002, 0.001)
-	z_axis = np.arange(min_coord[2], max_coord[2]+0.002, 0.001)
-
-	grid = analysis.core.RectilinearGridSource()
-	grid.XAxis = x_axis
-	grid.YAxis = y_axis
-	grid.ZAxis = z_axis
-
-	grid.Update()
-
-	nx = len(x_axis)-1
-	ny = len(y_axis)-1
-	nz = len(z_axis)-1
-
-	float_field = np.empty((nx, ny, nz))
-	float_field[:] = np.nan
-	count = 0
-	for i, coord in enumerate(coords):
-		c_ind = find_index(x_axis, y_axis, z_axis, coord)
-		float_field[c_ind[0], c_ind[1], c_ind[2]] = values[i]
-		count += 1
-	float_field = np.reshape(float_field, (nx*ny*nz,1), order='F')
-
-
-	field = XPostProcessor.FloatFieldData()
-	field.Grid = grid.Outputs[0].Data 
-	field.ValueLocation = XPostProcessor.eValueLocation.kCellCenter
-	field.NumberOfSnapshots = 1
-	field.NumberOfComponents = 1
-	field.SetField(0, float_field)
-	field.Quantity.Name = 'Temperature'
-
-	assert field.Check()
-
-	producer = analysis.core.TrivialProducer()
-	producer.SetDataObject(field)
-	producer.Description = fname
-	document.AllAlgorithms.Add(producer)
-
-def add_scalar_fiel(fname, coords, values):
-	
-	x_axis = np.unique(coords[:,0])
+def add_scalar_field(fname, coords, values):
+	x_axis = np.unique(coords[:,0]) 
 	y_axis = np.unique(coords[:,1])
 	z_axis = np.unique(coords[:,2])
 
 	grid = analysis.core.RectilinearGridSource()
-	grid.XAxis = x_axis
-	grid.YAxis = y_axis
-	grid.ZAxis = z_axis
+	grid.XAxis = np.append(x_axis,[2*x_axis[-1]-x_axis[-2]])
+	grid.YAxis = np.append(y_axis,[2*y_axis[-1]-y_axis[-2]])
+	grid.ZAxis = np.append(z_axis,[2*z_axis[-1]-z_axis[-2]])
 
 	grid.Update()
 
@@ -542,7 +496,7 @@ def add_scalar_fiel(fname, coords, values):
 	for i, coord in enumerate(coords):
 		c_ind = find_index(x_axis, y_axis, z_axis, coord)
 		float_field[c_ind[0], c_ind[1], c_ind[2]] = values[i]
-	
+
 	float_field = np.reshape(float_field, (nx*ny*nz,1), order='F')
 
 
@@ -633,7 +587,7 @@ def main():
 				# add the scalar field of worst temperature orientation
 				field_name = 'worstTempDistr'
 				temp_values = (worst_B_temp @ T @ worst_B_temp)
-				add_scalar_field(field_name, coords, temp_vals)
+				add_scalar_field(field_name, coords, temp_values)
 				
 				return max_temp_values, temp_values
 				

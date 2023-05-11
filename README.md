@@ -70,7 +70,19 @@ Number of steps stored during the thermal simulations from 0 s to *th_sim_interv
 Reference snapshot (from 1 to `th_sim_step_num`) to perform the thermal assessments (*e.g.*, if it is equal to `th_sim_step_num`, the script will compute the magnetic field direction that maximise the temperature increase in the model after `th_sim_interval` seconds of exposure);
 * **excluded_from_th_extr** : *list of string* <br>
 A list containing the names of the entities that can be excluded by the thermal result analyses.
+* **execute_visualizations** : *bool* <br>
+If True the script prepares the following items in the analysis tab:
+    * *worstB_powerVector* : If viewed as "Vector Field View", it represents the magnetic field direction that maximises the power deposition
+    * *worstB_tempVector* : If viewed as "Vector Field View", it represents the magnetic field direction that maximises the temperature increase after the specified amount of time
+    * *worstTemp_perVoxel* : Maximum temperature increase that each voxel can experience for any magnetic field direction with amplitude equal to `bField_amplitude`
+    * *worstTempDistr* : Temperature increase distribution relevant to the exposure to the magnetic field, with amplitude equal to `bField_amplitude`, aoriented along the direction which maximises the peak temperature increase
 
 ## Example
 
 An example is made available in the examples folder of the repository. To run the example it is sufficient to open the *.smash* file with Sim4Lfe and run the *computeWorstOrientation.py* script from the Sim4Life scripter.
+
+## Aknowledgments
+
+The project (21NRM05 STASIS) has received funding from the European Partnership on Metrology, co-financed from the European Union's Horizon Europe Research and Innovation Programme and by the Participating States.
+
+Many thanks to Carina Fuss (IT'IS Foundation) for dealing with the visualisation algorithm
