@@ -1,6 +1,7 @@
-# sim4life_GC_WorstOrientation
+# Sim4Life: a Python script for testing of gradient-induced device heating 
 
-The script allows to automatically compute the direction of a homogeneous, time-varying magnetic field, with unitary amplitude, that maximises the power deposited into an implant or the following maximum temperature increase. The analysis is in line with the test recommended by the ISO/TS 10974:2018 standard with regard to switched gradient field heating.<br>
+The script allows to automatically compute the direction of a homogeneous, time-varying magnetic field, with unitary amplitude, that maximises the power deposited into an implant or the following maximum temperature increase. The analysis is in line with the test recommended by the ISO/TS 10974:2018 standard with regard to switched gradient field heating (Chapter 9: Protection from harm to the patient caused by gradient-induced device heating).<br>
+In addition, the matrices that allow to compute the power deposition into the implant and the consequent temperature increase for any magnetic field direction are provided and different representations of the results are implemented. <br>
 The script requires Sim4Life together with a valid licence of the *Quasi-Static EM Solvers* and the *Thermal solver*.
 
 ## Operation
