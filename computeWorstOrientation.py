@@ -361,6 +361,10 @@ def setThermalSimulation(simName, cache_filename):
 	# Update the grid with the new parameters
 	simulation.UpdateGrid()
 
+	# Editing SolverSettings "Solver
+	solver_settings = simulation.SolverSettings
+	solver_settings.Kernel = solver_settings.Kernel.enum.Gpu
+
 	# Add the simulation to the UI
 	document.AllSimulations.Add( simulation )
 	
