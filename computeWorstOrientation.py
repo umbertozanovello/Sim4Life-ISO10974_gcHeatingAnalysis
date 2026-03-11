@@ -156,7 +156,7 @@ def extractEMResults(simulation_name):
 	inputs = [em_sensor_extractor.Outputs["J(x,y,z,f0)"]]
 	field_snapshot_filter = analysis.field.FieldSnapshotFilter(inputs=inputs)
 	field_snapshot_filter.UpdateAttributes()
-	field_snapshot_filter.Update()
+	field_snapshot_filter.UpdateAll()
 
 	x = field_snapshot_filter.Outputs["J(x,y,z,f0)"].Data.Grid.XAxis
 	y = field_snapshot_filter.Outputs["J(x,y,z,f0)"].Data.Grid.YAxis
@@ -174,7 +174,7 @@ def extractEMResults(simulation_name):
 	inputs = [em_sensor_extractor.Outputs["EM E(x,y,z,f0)"]]
 	field_snapshot_filter = analysis.field.FieldSnapshotFilter(inputs=inputs)
 	field_snapshot_filter.UpdateAttributes()
-	field_snapshot_filter.Update()
+	field_snapshot_filter.UpdateAll()
 	
 	x = field_snapshot_filter.Outputs["EM E(x,y,z,f0)"].Data.Grid.XAxis
 	y = field_snapshot_filter.Outputs["EM E(x,y,z,f0)"].Data.Grid.YAxis
@@ -225,7 +225,7 @@ def createThSourceFiles(jx, ex, jy, ey, jz, ez):
 	data_cache_exporter = analysis.exporters.DataCacheExporter(inputs=inputs)
 	data_cache_exporter.FileName = temp_files_directory + "//heatSourceCache_orig.cache"
 	data_cache_exporter.UpdateAttributes()
-	data_cache_exporter.Update(overwrite=True)
+	data_cache_exporter.UpdateAll(overwrite=True)
 	
 	# Preparing all cache files: creating files
 	with open(temp_files_directory + "//heatSourceCache_orig.cache", "rb") as f_source:
@@ -391,8 +391,7 @@ def extractThermalResults(simulation_name):
 	for entity in extr_entities:
 		field_masking_filter.SetEntities([entity])
 	field_masking_filter.UpdateAttributes()
-	field_masking_filter.Update()
-	field_masking_filter.Update()
+	field_masking_filter.UpdateAll()
 	
 	temp = field_masking_filter.Outputs["T(x,y,z,t)"].Data.Field(th_snapshot-1)[:,0]
 	
@@ -452,7 +451,7 @@ def add_worst_B_vector(worst_B, fname):
 	grid.XAxis = 0
 	grid.YAxis = 0
 	grid.ZAxis = 0
-	grid.Update()
+	grid.UpdateAll()
 
 	arrow = np.array([worst_B])
 
@@ -484,11 +483,11 @@ def add_scalar_field(fname, coords, values):
 	z_axis = np.unique(coords[:,2])
 
 	grid = analysis.core.RectilinearGridSource()
-	grid.XAxis = np.append(x_axis,[2*x_axis[-1]-x_axis[-2]])
-	grid.YAxis = np.append(y_axis,[2*y_axis[-1]-y_axis[-2]])
-	grid.ZAxis = np.append(z_axis,[2*z_axis[-1]-z_axis[-2]])
+	grid.XAxis = list(np.append(x_axis,[2*x_axis[-1]-x_axis[-2]]))
+	grid.YAxis = list(np.append(y_axis,[2*y_axis[-1]-y_axis[-2]]))
+	grid.ZAxis = list(np.append(z_axis,[2*z_axis[-1]-z_axis[-2]]))
 
-	grid.Update()
+	grid.UpdateAll()
 
 	nx = len(x_axis)
 	ny = len(y_axis)
@@ -502,7 +501,6 @@ def add_scalar_field(fname, coords, values):
 		float_field[c_ind[0], c_ind[1], c_ind[2]] = values[i]
 
 	float_field = np.reshape(float_field, (nx*ny*nz,1), order='F')
-
 
 	field = XPostProcessor.FloatFieldData()
 	field.Grid = grid.Outputs[0].Data 
@@ -544,7 +542,7 @@ def main():
 
 	M = np.sum((np.transpose(E.conj(),axes=(0,2,1)) @ J).T * vols, axis=2)
 	
-	#Thermal analysis
+	# Thermal analysis
 	
 	if execute_thermal:
 		if not onlyExtract:
