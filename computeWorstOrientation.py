@@ -225,7 +225,7 @@ def createThSourceFiles(jx, ex, jy, ey, jz, ez):
 	data_cache_exporter = analysis.exporters.DataCacheExporter(inputs=inputs)
 	data_cache_exporter.FileName = temp_files_directory + "//heatSourceCache_orig.cache"
 	data_cache_exporter.UpdateAttributes()
-	data_cache_exporter.UpdateAll(overwrite=True)
+	data_cache_exporter.Update(overwrite=True)
 	
 	# Preparing all cache files: creating files
 	with open(temp_files_directory + "//heatSourceCache_orig.cache", "rb") as f_source:
